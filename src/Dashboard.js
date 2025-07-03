@@ -18,6 +18,9 @@ export default function Dashboard() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [linksInput, setLinksInput] = useState("");
+
 
   // Task states
   const [tasks, setTasks] = useState({});
@@ -46,21 +49,31 @@ export default function Dashboard() {
   };
 
   const handleAddProject = () => {
+    const linksArray = linksInput.split(",").map(link => link.trim()).filter(link => link);
+
     if (!title || !dueDate) {
       alert("Title and due date required");
       return;
     }
-    addProject(currentUser.uid, title, description, new Date(dueDate))
+    addProject(currentUser.uid, title, description, new Date(dueDate), notes, linksArray)
       .then(() => refreshProjects());
     setTitle("");
     setDescription("");
     setDueDate("");
+    setNotes("");
+  setLinksInput("");
+
   };
 
   const handleDeleteProject = (projectId) => {
-    deleteProject(projectId)
-      .then(() => refreshProjects());
-  };
+  if (!currentUser || !currentUser.uid) {
+    console.error("No user logged in");
+    return;
+  }
+  deleteProject(currentUser.uid, projectId)
+    .then(() => refreshProjects());
+};
+
 
   const handleEditClick = (proj) => {
     setEditingProjectId(proj.id);
@@ -134,6 +147,21 @@ export default function Dashboard() {
         value={description}
         onChange={e => setDescription(e.target.value)}
       /><br/>
+
+
+      <textarea
+  placeholder="Optional Notes"
+  value={notes}
+  onChange={e => setNotes(e.target.value)}
+/><br/>
+
+<input
+  type="text"
+  placeholder="Links (comma-separated URLs)"
+  value={linksInput}
+  onChange={e => setLinksInput(e.target.value)}
+/><br/>
+
       <input
         type="date"
         value={dueDate}
@@ -163,6 +191,7 @@ export default function Dashboard() {
                   value={editedDueDate}
                   onChange={e => setEditedDueDate(e.target.value)}
                 /><br/>
+
                 <button onClick={() => handleUpdateProject(proj.id)}>Save</button>
                 <button onClick={() => setEditingProjectId(null)}>Cancel</button>
               </div>
@@ -171,10 +200,29 @@ export default function Dashboard() {
                 <strong>{proj.title}</strong><br/>
                 {proj.description}<br/>
                 Due: {new Date(proj.dueDate.seconds * 1000).toLocaleDateString()}<br/>
+
+                <button onClick={() => window.location.href = `/browser/${proj.id}`}>
+                Research Preferences
+                </button>
+
                 <button onClick={() => handleDeleteProject(proj.id)}>Delete Project</button>
                 <button onClick={() => handleEditClick(proj)}>Edit Project</button>
               </div>
             )}
+
+
+            <p><strong>Notes:</strong> {proj.notes}</p>
+{proj.links && proj.links.length > 0 && (
+  <div>
+    <strong>Links:</strong>
+    <ul>
+      {proj.links.map((link, index) => (
+        <li key={index}><a href={link} target="_blank" rel="noopener noreferrer">{link}</a></li>
+      ))}
+    </ul>
+  </div>
+)}
+
 
             <h4>Tasks</h4>
             <ul>

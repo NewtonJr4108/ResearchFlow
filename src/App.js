@@ -7,6 +7,7 @@ import Settings from "./Settings";
 import ProtectedRoute from "./ProtectedRoute";
 import { AuthProvider } from "./AuthContext";
 import Navbar from "./Navbar";
+import ResearchBrowser from "./ResearchBrowser";
 
 function App() {
   return (
@@ -17,8 +18,18 @@ function App() {
        {/* wrap all routes with AuthProvider */}
       <Router>
                 <Navbar />
-
+        
         <Routes>
+
+          <Route
+  path="/browser"
+  element={
+    <ProtectedRoute>
+      <ResearchBrowser />
+    </ProtectedRoute>
+  }
+/>
+
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route
@@ -37,6 +48,21 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+
+
+          <Route
+  path="/browser/:projectId"
+  element={
+    <ProtectedRoute>
+      <ResearchBrowser />
+    </ProtectedRoute>
+  }
+/>
+
+
+
+          
           <Route path="*" element={<Login />} /> {/* fallback */}
         </Routes>
       </Router>

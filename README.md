@@ -1,25 +1,22 @@
 # ResearchFlow
 
-ResearchFlow is a user-friendly project and task management app designed to streamline academic and research workflows. It features personalized dashboards, secure user authentication, dark mode, and seamless profile customization — empowering researchers to organize their projects and tasks efficiently in one place.
+Welcome to the ResearchFlow project!
 
-## Features
+## Getting Started
 
-- User authentication with Firebase Authentication  
-- Project and task creation, editing, and deletion  
-- Personalized dashboards displaying your projects and tasks  
-- Profile customization including profile picture upload  
-- Dark mode toggle for comfortable use in any lighting  
-- Secure data storage with Firebase Firestore and Storage
-
-## Technologies Used
-
-- React  
-- Firebase (Authentication, Firestore, Storage)  
-- React Router for routing  
-- CSS for styling and theming  
-
-## Installation
-
-1. Clone the repository  
+1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/researchflow.git
+   git clone https://github.com/yourusername/researchflow.git
+   cd researchflow
+   ```
+
+2. If you encounter a merge conflict:
+   - Open the conflicted files and look for conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`).
+   - Edit the file to keep the desired changes and remove the conflict markers.
+   - After resolving, add the file and commit:
+	 ```bash
+	 git add <filename>
+	 git commit
+	 ```
+
+For more details, see the [GitHub documentation on resolving merge conflicts](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/addressing-merge-conflicts/about-merge-conflicts).

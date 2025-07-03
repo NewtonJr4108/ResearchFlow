@@ -16,6 +16,7 @@ export default function Navbar() {
       <h1>ResearchFlow</h1>
       {currentUser && (
         <ul>
+          <li><button onClick={() => window.location.href = "/browser"}>Research Browser</button></li>
           <li><Link to="/dashboard" className="nav-button">Dashboard</Link></li>
           <li><Link to="/settings" className="nav-button">Settings</Link></li>
           <li><button onClick={handleLogout} className="nav-button">Logout</button></li>
