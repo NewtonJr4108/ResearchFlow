@@ -8,30 +8,17 @@ import ProtectedRoute from "./ProtectedRoute";
 import { AuthProvider } from "./AuthContext";
 import Navbar from "./Navbar";
 import ResearchBrowser from "./ResearchBrowser";
+import Browser from "./Browser";
+import ProjectPage from "./ProjectPage";
 
 function App() {
   return (
     <AuthProvider> 
-      
-
-      
-       {/* wrap all routes with AuthProvider */}
       <Router>
-                <Navbar />
-        
+        <Navbar />
         <Routes>
 
-          <Route
-  path="/browser"
-  element={
-    <ProtectedRoute>
-      <ResearchBrowser />
-    </ProtectedRoute>
-  }
-/>
-
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          {/* Dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -40,6 +27,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Settings */}
           <Route
             path="/settings"
             element={
@@ -52,18 +41,42 @@ function App() {
 
 
           <Route
-  path="/browser/:projectId"
+  path="/projects/:projectId"
   element={
     <ProtectedRoute>
-      <ResearchBrowser />
+      <ProjectPage />
     </ProtectedRoute>
   }
 />
 
 
+          {/* Browser for project-specific PDF and AI work */}
+          <Route
+            path="/browser/:projectId"
+            element={
+              <ProtectedRoute>
+                <Browser />
+              </ProtectedRoute>
+            }
+          />
 
-          
-          <Route path="*" element={<Login />} /> {/* fallback */}
+          {/* Research Browser for general arXiv or external paper searches */}
+          <Route
+            path="/research-browser"
+            element={
+              <ProtectedRoute>
+                <ResearchBrowser />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Auth Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Login />} /> 
+
         </Routes>
       </Router>
     </AuthProvider>
