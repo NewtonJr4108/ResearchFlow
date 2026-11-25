@@ -1,6 +1,6 @@
 # ResearchFlow
 
-A research workspace: organize work into projects, find papers, pull the reference list out of any PDF, find sources that back up your own writing, and export citations (APA, MLA, Chicago, IEEE, BibTeX).
+A research workspace: organize work into projects, find papers, pull the reference list out of any PDF, write your paper with live citations, and export it with a formatted reference list (APA, MLA, Chicago, IEEE; BibTeX for the library).
 
 ## Getting started
 
@@ -37,7 +37,17 @@ server/              Express API (no database; proxies public scholarly APIs)
   lib/text.js        Sentence/keyword handling, reference-list extraction
 ```
 
-All user data lives in Firebase under `users/{uid}/…` (projects, tasks, sources, uploaded papers).
+All user data lives in Firebase under `users/{uid}/…` (projects, tasks, sources, uploaded papers, the paper draft).
+
+## Writing a paper
+
+The **Write paper** tab is a rich-text editor (TipTap) with the project library beside it:
+
+- **Cite from library** inserts an in-text citation at the cursor. Click a citation first to add another source to it.
+- **Find sources** looks up published work for the selected text; *Save & cite* adds the paper to the library and places the citation at the end of the sentence it supports.
+- Citations store only source ids, so switching style (APA, MLA, Chicago, IEEE) re-renders every citation and the reference list.
+- **Preview** shows the formatted paper with its References / Works Cited; **Print / PDF** and **Download HTML** export it. **Import Google Doc** brings in an existing draft.
+- Drafts autosave to Firestore (one paper per project, up to ~900 KB of text).
 
 ## Firebase setup
 

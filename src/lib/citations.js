@@ -156,25 +156,71 @@ export function cite(paper, style) {
   return toText(format(paper, style));
 }
 
-// Whole bibliography as text; APA/MLA/Chicago are alphabetized by first author.
+// Styles that make sense for a written paper (BibTeX is an export format, not a paper style).
+export const DOC_STYLES = STYLES.filter((s) => s.id !== 'bibtex');
+
+export function referencesHeading(style) {
+  return style === 'mla' ? 'Works Cited' : style === 'chicago' ? 'Bibliography' : 'References';
+}
+
+// Order entries the way the style lists them: alphabetical for author-date
+// styles, as given (citation order) for IEEE and BibTeX.
+export function orderForBibliography(papers, style = 'apa') {
+  if (style === 'ieee' || style === 'bibtex') return papers;
+  return [...papers].sort((a, b) => cite(a, style).localeCompare(cite(b, style)));
+}
+
+// Whole bibliography as text.
 export function bibliography(papers, style = 'apa') {
-  const sorted = style === 'ieee' || style === 'bibtex'
-    ? papers
-    : [...papers].sort((a, b) => cite(a, style).localeCompare(cite(b, style)));
-  return sorted
+  return orderForBibliography(papers, style)
     .map((p, i) => (style === 'ieee' ? `[${i + 1}] ${cite(p, style)}` : cite(p, style)))
     .join(style === 'bibtex' ? '\n\n' : '\n');
 }
 
-// Short in-text form, e.g. (Vaswani et al., 2017).
-export function inText(paper, style = 'apa') {
+// The part of an in-text citation inside the parentheses, e.g. "Vaswani et al., 2017".
+function inTextPart(paper, style) {
   const p = normalize(paper);
   const fams = p.authors.map((a) => a.family);
+  const shortTitle = `“${p.title.split(/\s+/).slice(0, 4).join(' ')}${p.title.split(/\s+/).length > 4 ? '…' : ''}”`;
   const yr = p.year || 'n.d.';
-  if (style === 'mla') {
-    const who = fams.length > 2 ? `${fams[0]} et al.` : fams.join(' and ');
-    return `(${who || p.title})`;
+  const joiner = style === 'apa' ? ' & ' : ' and ';
+  const who = fams.length > 2 ? `${fams[0]} et al.` : fams.join(joiner) || shortTitle;
+  if (style === 'mla') return who;
+  if (style === 'chicago') return `${who} ${yr}`;
+  return `${who}, ${yr}`;
+}
+
+// Short in-text form, e.g. (Vaswani et al., 2017).
+export function inText(paper, style = 'apa') {
+  return `(${inTextPart(paper, style)})`;
+}
+
+// In-text citation for one or more sources, as placed in a paper:
+//   APA "(Frenda & Fenn, 2016; Vaswani et al., 2017)"   IEEE "[1], [3]"
+// `numbers` maps a paper to its IEEE number (order of first citation).
+export function inTextGroup(papers, style = 'apa', numbers = () => '?') {
+  if (papers.length === 0) return style === 'ieee' ? '[?]' : '(missing source)';
+  if (style === 'ieee') {
+    return papers.map((p) => numbers(p)).sort((a, b) => a - b).map((n) => `[${n}]`).join(', ');
   }
-  const who = fams.length > 2 ? `${fams[0]} et al.` : fams.join(style === 'apa' ? ' & ' : ' and ');
-  return style === 'chicago' ? `(${who || p.title} ${yr})` : `(${who || p.title}, ${yr})`;
+  return `(${papers.map((p) => inTextPart(p, style)).join('; ')})`;
+}
+
+// Source ids in the order they're first cited in a TipTap document (JSON).
+export function citedIdsInOrder(docJson) {
+  const seen = new Set();
+  const order = [];
+  (function walk(node) {
+    if (!node) return;
+    if (node.type === 'citation') {
+      for (const id of node.attrs?.sourceIds || []) {
+        if (!seen.has(id)) {
+          seen.add(id);
+          order.push(id);
+        }
+      }
+    }
+    (node.content || []).forEach(walk);
+  })(docJson);
+  return order;
 }
