@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { bibliography, cite, format, inText } from '../src/lib/citations.js';
+import { bibliography, citedIdsInOrder, cite, format, inText, inTextGroup, orderForBibliography } from '../src/lib/citations.js';
 
 const frenda = {
   title: 'Sleep less, think worse: The effect of sleep deprivation on working memory',
@@ -73,4 +73,33 @@ test('in-text citations', () => {
   assert.equal(inText(vaswani, 'apa'), '(Vaswani et al., 2017)');
   assert.equal(inText(vaswani, 'mla'), '(Vaswani et al.)');
   assert.equal(inText(frenda, 'chicago'), '(Frenda and Fenn 2016)');
+});
+
+test('in-text citations for several sources at once', () => {
+  const numbers = (p) => (p === vaswani ? 3 : 1);
+  assert.equal(inTextGroup([frenda, vaswani], 'apa'), '(Frenda & Fenn, 2016; Vaswani et al., 2017)');
+  assert.equal(inTextGroup([frenda, vaswani], 'mla'), '(Frenda and Fenn; Vaswani et al.)');
+  assert.equal(inTextGroup([frenda, vaswani], 'chicago'), '(Frenda and Fenn 2016; Vaswani et al. 2017)');
+  assert.equal(inTextGroup([vaswani, frenda], 'ieee', numbers), '[1], [3]');
+  assert.equal(inTextGroup([], 'apa'), '(missing source)');
+});
+
+test('anonymous works fall back to a short title', () => {
+  assert.equal(inText({ title: 'A report on the state of sleep research worldwide', authors: [], year: 2020 }, 'apa'),
+    '(“A report on the…”, 2020)');
+});
+
+test('finds cited source ids in order of first appearance', () => {
+  const doc = { type: 'doc', content: [
+    { type: 'paragraph', content: [{ type: 'text', text: 'A' }, { type: 'citation', attrs: { sourceIds: ['b', 'a'] } }] },
+    { type: 'heading', content: [{ type: 'citation', attrs: { sourceIds: ['a'] } }] },
+    { type: 'paragraph', content: [{ type: 'citation', attrs: { sourceIds: ['c', 'b'] } }] },
+  ] };
+  assert.deepEqual(citedIdsInOrder(doc), ['b', 'a', 'c']);
+  assert.deepEqual(citedIdsInOrder({ type: 'doc' }), []);
+});
+
+test('bibliography order: alphabetical for APA, citation order for IEEE', () => {
+  assert.deepEqual(orderForBibliography([vaswani, frenda], 'apa').map((p) => p.year), [2016, 2017]);
+  assert.deepEqual(orderForBibliography([vaswani, frenda], 'ieee').map((p) => p.year), [2017, 2016]);
 });

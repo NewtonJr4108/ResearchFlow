@@ -8,6 +8,7 @@ import WritingPanel from '../components/WritingPanel.jsx';
 import PdfPanel from '../components/PdfPanel.jsx';
 import OverviewPanel from '../components/OverviewPanel.jsx';
 import FilesPanel from '../components/FilesPanel.jsx';
+import WritePanel from '../components/editor/WritePanel.jsx';
 import { dueLabel } from './Dashboard.jsx';
 
 const LAST_PROJECT = 'rf-last-project';
@@ -30,6 +31,7 @@ function recall() {
 
 const TABS = [
   { id: 'library', label: 'Library' },
+  { id: 'write', label: 'Write paper' },
   { id: 'search', label: 'Search papers' },
   { id: 'writing', label: 'Sources for my writing' },
   { id: 'pdf', label: 'References from a PDF' },
@@ -67,7 +69,7 @@ export default function Workspace() {
   const panelProps = { uid, projectId, savedIds, style: citationStyle };
 
   return (
-    <div className="page">
+    <div className={`page ${tab === 'write' ? 'wide' : ''}`}>
       <header className="workspace-head">
         <div className="small"><Link to="/dashboard">← Projects</Link></div>
         <div className="title-row">
@@ -93,6 +95,14 @@ export default function Workspace() {
           loading={sourcesLoading}
           onStyleChange={(s) => updateSettings({ citationStyle: s })}
           onGoTo={go}
+        />
+      )}
+      {tab === 'write' && (
+        <WritePanel
+          {...panelProps}
+          project={project}
+          sources={sources}
+          onStyleChange={(s) => updateSettings({ citationStyle: s })}
         />
       )}
       {tab === 'search' && <SearchPanel {...panelProps} initialQuery={params.get('q') || project.title} key={params.get('q') || ''} />}

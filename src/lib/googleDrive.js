@@ -142,6 +142,12 @@ export async function exportDocText(file) {
   return (await res.text()).replace(/^﻿/, '');
 }
 
+// A Google Doc as HTML (headings, bold/italic, lists survive the import into the editor).
+export async function exportDocHtml(file) {
+  const res = await driveFetch(`${DRIVE}/${encodeURIComponent(file.id)}/export?mimeType=text%2Fhtml`);
+  return res.text();
+}
+
 /* --------------------------------- Embeds ---------------------------------- */
 
 // URL for an inline preview. The viewer must be signed in to a Google account

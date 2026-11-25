@@ -6,9 +6,10 @@
 //   …/sources/{sourceId}                         a saved paper + { origin, note, addedAt }
 //   …/papers/{paperId}                           an uploaded PDF + its extracted references
 //   …/files/{fileId}                             a linked Google Drive file { driveId, name, mimeType, url }
+//   …/drafts/main                                the paper being written { title, byline, contentJson, words }
 import { useEffect, useState } from 'react';
 import {
-  addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query,
+  addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, orderBy, query,
   serverTimestamp, setDoc, Timestamp, updateDoc, writeBatch,
 } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
@@ -98,7 +99,7 @@ export async function deleteProject(uid, pid) {
   await Promise.all(
     papers.docs.map((d) => d.data().storagePath && deleteObject(ref(storage, d.data().storagePath)).catch(() => {})),
   );
-  for (const name of ['tasks', 'sources', 'papers', 'files']) {
+  for (const name of ['tasks', 'sources', 'papers', 'files', 'drafts']) {
     const snap = await getDocs(sub(uid, pid, name));
     for (let i = 0; i < snap.docs.length; i += 400) {
       const batch = writeBatch(db);
@@ -192,6 +193,34 @@ export async function savePaperUpload(uid, pid, file, result) {
 export async function deletePaperUpload(uid, pid, paper) {
   if (paper.storagePath) await deleteObject(ref(storage, paper.storagePath)).catch(() => {});
   await deleteDoc(doc(sub(uid, pid, 'papers'), paper.id));
+}
+
+/* ---------------------------------- Paper ---------------------------------- */
+
+// One paper per project, at …/drafts/main. The editor's JSON is stored as a
+// string: it's opaque to queries, and Firestore can't hold nested arrays.
+const draftDoc = (uid, pid) => doc(db, 'users', uid, 'projects', pid, 'drafts', 'main');
+export const MAX_DRAFT_BYTES = 900_000; // Firestore's limit is 1 MiB per document
+
+export async function loadDraft(uid, pid) {
+  const snap = await getDoc(draftDoc(uid, pid));
+  if (!snap.exists()) return null;
+  const data = snap.data();
+  let content = null;
+  try {
+    content = data.contentJson ? JSON.parse(data.contentJson) : null;
+  } catch {
+    content = null;
+  }
+  return { ...data, content };
+}
+
+export function saveDraft(uid, pid, { title, byline, content, words }) {
+  const contentJson = JSON.stringify(content);
+  if (contentJson.length > MAX_DRAFT_BYTES) {
+    return Promise.reject(new Error('This paper is too large to save (about 900 KB of text). Split it into sections or remove pasted images.'));
+  }
+  return setDoc(draftDoc(uid, pid), { title, byline, contentJson, words, updatedAt: serverTimestamp() }, { merge: true });
 }
 
 /* ---------------------------- Google Drive files --------------------------- */
